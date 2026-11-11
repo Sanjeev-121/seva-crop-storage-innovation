@@ -91,7 +91,6 @@ Additional technologies such as APIs, IoT or AI/ML will be considered only if th
 
 | Member   | Responsibility                        |
 | -------- | ------------------------------------- |
-| Nainika Das | Project Lead & Research Coordination  |
 | Naim Molla | Frontend Developer |
 | Gaurav Kumar | Backend Developer |
 | Tanmoy Sarkar | AI/ML Developer |
