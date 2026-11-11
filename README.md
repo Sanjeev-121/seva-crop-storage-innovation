@@ -1,7 +1,9 @@
 ### Research-Driven Technology for Better Crop Storage Accessibility and Management
 
 **Seva Innovation Challenge | Agriculture & Farming Domain**
+## Project Preview
 
+![Seva Crop Storage](seva-crop-storage.png)
 ---
 
 ## 🌱 About the Project
