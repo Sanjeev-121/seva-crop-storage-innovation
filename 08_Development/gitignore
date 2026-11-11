@@ -1,0 +1,5 @@
+seva.db
+test_seva.db
+__pycache__/
+.pytest_cache/
+.env
