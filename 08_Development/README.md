@@ -1,54 +1,92 @@
 # Seva Crop Storage: Backend
 
-FastAPI backend: farmer registration/login, storage listing, application submission aur tracking.
+REST API for the Seva Crop Storage project, built with FastAPI. It handles farmer registration and login, storage facility listings, application submission, and application tracking.
 
-## Run karna
-```
+## Getting Started
+
+### Prerequisites
+- Python 3.10 or later
+
+### Installation and Run
+```bash
 pip install -r requirements.txt
-python seed.py            # optional: sample data + demo operator
+python seed.py            # optional: loads sample data and a demo operator account
 uvicorn main:app --reload
 ```
-API docs: http://localhost:8000/docs
 
-PostgreSQL ke liye environment variable set karein:
+Interactive API documentation is available at http://localhost:8000/docs once the server is running.
+
+### Configuration
+The application reads the following environment variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `DATABASE_URL` | Database connection string | `sqlite:///./seva.db` |
+| `SECRET_KEY` | Secret used to sign authentication tokens | development placeholder (must be changed in production) |
+
+To use PostgreSQL:
 ```
 DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/seva_storage
-SECRET_KEY=<koi lamba random string>
 ```
-Bina `DATABASE_URL` ke SQLite (`seva.db`) use hota hai.
 
-**Note:** models badalne par purani `seva.db` file delete karni padegi (tables dobara banenge).
+> **Note:** If the data models change, delete the existing `seva.db` file so the tables are recreated.
 
-## Tests
-```
+## Testing
+```bash
 pytest
 ```
+Tests run against a separate database (`test_seva.db`) and do not affect development data.
 
-## Roles
-- `farmer`: register, apni applications submit/track/cancel karta hai.
-- `operator`: storage add karta hai, applications ka status badalta hai.
+## User Roles
 
-## Endpoints
-| Method | Path | Kaun | Kaam |
+| Role | Permissions |
+|---|---|
+| `farmer` | Register, submit, track, and cancel their own applications |
+| `operator` | Add storage facilities, view all applications, and update application status |
+
+## API Reference
+
+| Method | Endpoint | Access | Description |
 |---|---|---|---|
-| POST | /auth/register | sab | Naya user (farmer ya operator) |
-| POST | /auth/login | sab | JSON login, token milta hai |
-| GET / PATCH | /me | login | Profile dekhna / badalna |
-| GET | /storages | sab | List (`?district=`, `?min_available_kg=`) |
-| GET | /storages/{id} | sab | Ek storage ki detail |
-| POST | /storages | operator | Storage add karna |
-| POST | /applications | farmer | Application submit |
-| GET | /applications | farmer | Meri applications (`?status=`) |
-| GET | /applications/{id} | farmer/operator | Tracking + history |
-| PATCH | /applications/{id}/cancel | farmer | Cancel karna |
-| GET | /operator/applications | operator | Saari applications |
-| PATCH | /applications/{id}/status | operator | Status badalna |
+| POST | `/auth/register` | Public | Create a new user (farmer or operator) |
+| POST | `/auth/login` | Public | Log in with phone and password; returns an access token |
+| GET | `/me` | Authenticated | View the current user's profile |
+| PATCH | `/me` | Authenticated | Update the current user's profile |
+| GET | `/storages` | Public | List storage facilities (filters: `district`, `min_available_kg`) |
+| GET | `/storages/{id}` | Public | Get details of a storage facility |
+| POST | `/storages` | Operator | Add a storage facility |
+| POST | `/applications` | Authenticated | Submit a storage application |
+| GET | `/applications` | Authenticated | List the current user's applications (filter: `status`) |
+| GET | `/applications/{id}` | Owner or operator | View an application with its status history |
+| PATCH | `/applications/{id}/cancel` | Owner | Cancel a pending or approved application |
+| GET | `/operator/applications` | Operator | List all applications (filters: `status`, `storage_id`) |
+| PATCH | `/applications/{id}/status` | Operator | Update an application's status |
 
-## Application status
-`pending` → `approved` → `stored` → `completed`  (ya `rejected` / `cancelled`)
+## Application Lifecycle
 
-Approve karne par storage ki `available_kg` ghat jati hai, aur reject/cancel/complete par wapas badh jati hai.
+```
+pending → approved → stored → completed
+   └→ rejected        └→ cancelled
+```
 
-## Abhi baaki
-- Storage ko ek specific operator se link karna.
-- Production mein `SECRET_KEY` aur CORS origins set karna.
+- Each status change is recorded with a timestamp and an optional note, and is returned in the application's `events` list.
+- Submitting an application validates the requested quantity against the storage facility's minimum quantity and available capacity.
+- Approving an application reduces the facility's `available_kg`. Rejecting, cancelling, or completing an approved application restores it.
+- Applications in a final state (`rejected`, `cancelled`, `completed`) cannot be changed.
+
+## Project Structure
+
+| File | Purpose |
+|---|---|
+| `main.py` | API routes and application logic |
+| `models.py` | Database models |
+| `schemas.py` | Request and response validation |
+| `auth.py` | Password hashing, token handling, role checks |
+| `database.py` | Database connection and session management |
+| `seed.py` | Sample data loader (for demonstration only) |
+| `test_api.py` | Automated API tests |
+
+## Known Limitations and Next Steps
+- Storage facilities are not yet linked to specific operator accounts, so any operator can update any application.
+- `SECRET_KEY` and the allowed CORS origins must be configured before any production deployment.
+- Data fields may be adjusted once the final problem gap is confirmed through farmer and operator research.
