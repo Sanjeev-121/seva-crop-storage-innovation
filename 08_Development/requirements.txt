@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
-pydantic
-pyjwt
-passlib[bcrypt]
-bcrypt<4.1
-python-multipart
